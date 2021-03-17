@@ -1,0 +1,279 @@
+<html>
+    <head>
+        <title>POSシステム</title>
+        <link rel="stylesheet" href="./style.css">
+    </head>
+    <body>
+        <h2>POSシステム</h2>
+        <!--step1_POSシステム用のUIを作成--> 
+        <div> <!--style="float:left;"-->
+            <!--step3_CSVファイル読み込み--> 
+            商品リストCSVファイル選択　<input id="search_csv" placeholder="※拡張子.csv不要" type="text"></input>
+            <input id="button1" type="submit" value="表示" onclick="list_view()"><br>
+            商品一覧<br><textarea id="result1" class="frame1" rows="10"></textarea>
+        </div>
+        <div class="frame3" style="float:left;">
+            商品コード <input id="search_code" placeholder="商品コードを入力" type="text"></input><br>
+            個数　　　 <input id="volume" placeholder="個数を入力" type="text"></input>
+            <input id="button2" type="submit" value="カートに入れる">
+
+        </div>
+        <div style="clear:both;">
+            購入商品一覧<br><textarea id="result2" class="frame2" rows="8"></textarea>
+        </div>
+        <div class=""> <!--style="float:left;"-->
+            合計金額　　　<textarea id="result3" class="frame4"></textarea>
+            <input id="button3" type="submit" value="会計" onclick="Textarea_Redisplay()"></input>
+        </div>
+        <!--step4_POSシステム追加機能　ラジオボタンで現金値引き--> 
+        <form id="radio_buton"  onclick="cash_discount();">
+            <table border="0" cellspacing="0" cellpadding="0">
+            <tr>お支払い方法
+                <label><input type="radio" name="q1" value="クレジット" onclick="entryChange1();"/>クレジット</label>
+                <label><input type="radio" name="q1" value="現金" onclick="entryChange1();"/>現金</label>
+                <label><input type="radio" name="q1" value="楽天pay" onclick="entryChange1();"/>楽天pay</label>
+                <label><input type="radio" name="q1" value="" onclick="entryChange1();" checked="checked"/>非選択</label>
+            </tr>
+            <!-- クレジット　表示非表示切り替え -->
+            <tr id="credit_Box">
+                <td>クレジット情報
+                    <input id="credit_number" placeholder="クレジット番号" type="text"></input>
+                    <input id="Expiration_date" placeholder="有効期限 月/年" type="text"></input>
+                    <input id="button5" type="submit" value="決済" onclick="credit_bill()"></input><br>
+                </td>
+            </tr>
+            <!-- 現金　表示非表示切り替え -->
+            <tr id="cash_Box">
+                <td>現金支払いの場合は5%OFF<br>お支払い方法
+                    <input id="money" placeholder="お支払い金額を入力" type="text"></input>
+                    <input id="button4" type="submit" value="購入" onclick="cash_bill()"><br>
+                </td>
+            </tr>
+            <!-- 楽天pay　表示非表示切り替え -->
+            <tr id="rakuten_Box">
+                <td>バーコード番号
+                    <input id="barcode" placeholder="バーコード番号" type="text"></input>
+                    <input id="button6" type="submit" value="決済" onclick="pay_bill()"><br>
+                </td>
+            </tr>
+            </table>
+        </form>
+        <!-- 割引　表示非表示切り替え -->
+        <div id="discount_box">
+            5%OFF　割引対象
+        </div>
+        <textarea id="result4" class="frame5" rows="8"></textarea>
+
+        <script type="text/javascript" src="./eel.js"></script>
+        <script>
+            //ファイル名の時間を取得
+            //var now = new Date();
+            //var Year = now.getFullYear();
+            //var Month = now.getMonth()+1;
+            //var hinichi = now.getDate();
+            //var Hour = now.getHours();
+            //var Min = now.getMinutes();
+            //var Sec = now.getSeconds();
+            //data = Year+"_"+ Month +"_"+ hinichi +"_"+  Hour + Min +Sec
+            //eel.now(data)
+
+            //商品一覧
+            function list_view() {
+                if (document.getElementById('search_csv').value == "" )  {
+                    alert('『商品リストCSVファイル選択』を入力してください');
+                    return false;
+                }else{
+	                var textareaForm = document.getElementById("result1");
+                    textareaForm.value = '';
+                    eel.registration(search_csv.value)
+                }
+            }
+            eel.expose(monitor1);
+            function monitor1(text) {
+                result1.value += text + "\n"
+            }
+            //購入商品一覧に選択した商品を表示、リストにない商品は無いと表示あり
+            button2.addEventListener('click', () => {
+                //検索が空欄の時にエラーを出力
+                if (document.getElementById('search_csv').value == "" )  {
+                    alert('『商品リストCSVファイル選択』を入力してください');
+                    return false;
+                }if (document.getElementById('search_code').value == "" )  {
+                    alert('『商品コードを入力』してください');
+                    return false;
+                }if (document.getElementById('volume').value == "" )  {
+                    alert('『個数』を入力してください');
+                    return false;
+                }else{
+                    eel.view(search_code.value,volume.value,search_csv.value)
+                }
+            })
+            eel.expose(monitor2);
+            function monitor2(text) {
+                result2.value += text + "\n"
+            }
+            //カートに入れた購入商品を再表示、合計金額を表示
+            function Textarea_Redisplay() {
+	            var textareaForm = document.getElementById("result2");
+                textareaForm.value = '';
+                var textareaForm = document.getElementById("result3");
+                textareaForm.value = '';
+                eel.list_all(1)
+            }
+            eel.expose(monitor2);
+            function monitor2(text) {
+                result2.value += text + "\n"
+            }
+            eel.expose(monitor3);
+            function monitor3(text) {
+                result3.value += text + "\n"
+            }
+
+            //step4_POSシステム追加機能　ラジオボタンで現金値引き後合計金額再表示
+
+            //function cash_discount(){
+                //var textareaForm = document.getElementById("result3");
+                //textareaForm.value = '';
+                //var element = document.getElementById("radio_buton") ;
+                //var radioNodeList = element.q1 ;
+                //var a = radioNodeList.value ;
+                //if ( a == "" ) {
+                    // 未選択状態
+                //if ( a == "現金") {
+                    //eel.discount()
+                //} else {
+                    // aには選択状態の値が代入されている
+                    //var textareaForm = document.getElementById("result2");
+                    //textareaForm.value = '';
+                    //eel.list_all(1)
+                //}
+            //}
+            eel.expose(monitor3);
+            function monitor3(text) {
+                result3.value += text + "\n"
+            }
+
+            //step4_POSシステム追加機能　ラジオボタンで現金値引き後合計金額再表示
+            let flag = 1;
+            function entryChange1(){
+                var textareaForm = document.getElementById("result3");
+                textareaForm.value = '';
+                radio = document.getElementsByName("q1") 
+                //クレジット
+                if(radio[0].checked) {
+                    var textareaForm = document.getElementById("result2");
+                    textareaForm.value = '';
+                    document.getElementById("cash_Box").style.display = "none";
+                    document.getElementById("credit_Box").style.display = "";
+                    document.getElementById("discount_box").style.display = "none";
+                    document.getElementById("rakuten_Box").style.display = "none";
+                    eel.list_all(0)
+                //現金
+                }else if(radio[1].checked) {
+                    document.getElementById("cash_Box").style.display = "";
+                    document.getElementById("credit_Box").style.display = "none";
+                    document.getElementById("discount_box").style.display = "";
+                    document.getElementById("rakuten_Box").style.display = "none";
+                    eel.discount(flag)
+                    flag = 0;
+                //楽天   
+                }else if(radio[2].checked) {
+                    var textareaForm = document.getElementById("result2");
+                    textareaForm.value = '';
+                    document.getElementById("cash_Box").style.display = "none";
+                    document.getElementById("credit_Box").style.display = "none";
+                    document.getElementById("discount_box").style.display = "none";
+                    document.getElementById("rakuten_Box").style.display = "";
+                    eel.list_all(0)
+                //非選択
+                }else if(radio[3].checked) {
+                    document.getElementById("cash_Box").style.display = "none";
+                    document.getElementById("credit_Box").style.display = "none";
+                    document.getElementById("discount_box").style.display = "none";
+                    document.getElementById("rakuten_Box").style.display = "none";
+                }
+            };
+            //オンロードさせ、リロード時に選択を保持
+            window.onload = entryChange1();
+            window.onload = null;
+
+            // フレームをreloadする方法
+            //function doReloadTheFrame() {
+                // フレームのDOM要素を取得
+                //var iframe = document.getElementById("cash_Box");
+                // フレームをreload
+                //iframe.contentWindow.location.reload(true);
+            //}
+
+            //お預かり金額、お釣り計算、ラジオボタンの選択によって購入時のコメント変更
+            //クレジット決済
+            function credit_bill(){
+                if (document.getElementById("credit_number").value == "" )  {
+                    alert('『クレジット番号』を入力してください');
+                    return false;
+                }if (document.getElementById("Expiration_date").value == "" )  {
+                    alert('『クレジット有効期限 月/年』を入力してください');
+                    return false;
+                }else{
+                    var textareaForm = document.getElementById("result4");
+                    textareaForm.value = '';
+                    eel.bill(0,0)
+                }
+                
+            };
+            //window.onload = credit_bill();
+
+            //現金支払い
+            function cash_bill(){
+                if (document.getElementById('money').value == "" )  {
+                    alert('『お支払い金額』を入力してください');
+                    return false;
+                }else{
+                    var textareaForm = document.getElementById("result4");
+                    textareaForm.value = '';
+                    eel.bill(money.value,1)
+                }  
+            };
+            //window.onload = cash_bill();
+            //楽天pay決済
+            function pay_bill(){
+                if (document.getElementById("barcode").value == "" )  {
+                    alert('『バーコード番号』を入力してください');
+                    return false;
+                }else{
+                    var textareaForm = document.getElementById("result4");
+                    textareaForm.value = '';
+                    eel.bill(0,2)
+                }
+            };
+            //window.onload = pay_bill();
+
+            //function Textarea_view_bill() {
+                //if (document.getElementById('money').value == "" )  {
+                    //alert('『お支払い金額』を入力してください');
+                    //return false;
+                //}else{
+                    //var element = document.getElementById("radio_buton") ;
+                    //var radioNodeList = element.q1 ;
+                    //var a = radioNodeList.value ;
+                    //if ( a == "" ) {
+                        // 未選択状態
+                        //alert("『お支払い方法』項目が選択されていません。");
+                        //return false;
+                    //}else{
+                        //alert(a + "が選択されました。");
+                    //var textareaForm = document.getElementById("result4");
+                    //textareaForm.value = '';
+                    //eel.bill(money.value)
+                //}
+            //}
+            eel.expose(monitor4);
+            function monitor4(text) {
+                result4.value += text + "\n"
+            }
+
+        </script>
+
+    </body>
+
+</html>

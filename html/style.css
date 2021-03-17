@@ -1,0 +1,32 @@
+/*step5_ログ表示領域の変更*/
+/*クラス名だけで指定*/
+
+.frame1{
+    /*大きさ*/
+    width: 500px;　/*横幅を指定 */
+    height:500px; /* 高さを指定  */
+    /*background: silver; /*背景の色*/
+    /*border: double； /*ボーダースタイルの値*/
+}
+.frame2{
+    /*大きさ*/
+    width: 500px;　/*横幅を指定 */
+    height:500px; /* 高さを指定  */
+    /*background: silver; /*背景の色*/
+    /*border: double； /*ボーダースタイルの値*/
+}
+
+.frame3{
+    margin-right: 250px;
+}
+.frame4{
+    width: 172px;
+    margin-right: 1px;
+}
+.money_input{
+    margin-right: 1px;
+}
+
+.frame5{
+    width: 500px;
+}
